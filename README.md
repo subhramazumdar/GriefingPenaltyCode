@@ -1,3 +1,4 @@
-The file name is now a command line argument </br>
+This repository contains the code that demonstrates the impact of griefing-penalty in Lightning Network, as described in the paper [Griefing-Penalty: Countermeasure for Griefing Attack](https://arxiv.org/pdf/2005.09327.pdf)
+
 Execute </br>
 bash test.sh
