@@ -65,12 +65,12 @@ def main():
     output_file = open(sys.argv[5],"a")
 
     #TODO: can we name budget_output1, roi3, roi4 etc better? like roi_htlc or something similar?
-    budget_output1, roi3, count_path = launch_attack_griefing_no_change(G_tmp, budget, per_tx_val, output_file)
+    budget_output_htlc_griefing_atatck, roi_htlc_griefing_attack, count_path = launch_attack_griefing_no_change(G_tmp, budget, per_tx_val, output_file)
     
     G_tmp = G.copy()
-    budget_output2, roi4, count = launch_attack_griefing_no_change_penalty(G_tmp, budget, per_tx_val, gamma, output_file)
+    budget_output_htlcgp_griefing_attack, roi_htlcgp_griefing_attack, count = launch_attack_griefing_no_change_penalty(G_tmp, budget, per_tx_val, gamma, output_file)
     
-    output_file.write(sys.argv[1]+" "+sys.argv[2]+" "+str(budget_output1)+" "+str(roi3)+" "+sys.argv[3]+" "+sys.argv[4]+" "+str(budget_output1)+" "+str(roi4)+" "+str(count_path)+"\n")
+    output_file.write(sys.argv[1]+" "+sys.argv[2]+" "+str(budget_output_htlc_griefing_atatck)+" "+str(roi_htlc_griefing_attack)+" "+sys.argv[3]+" "+sys.argv[4]+" "+str(budget_output_htlcgp_griefing_attack)+" "+str(roi_htlcgp_griefing_attack)+" "+str(count_path)+"\n")
     
     output_file.close()
     # f.close()
