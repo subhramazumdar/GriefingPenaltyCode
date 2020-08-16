@@ -6,7 +6,11 @@ from networkx.algorithms.flow import edmonds_karp
 
 
 def set_source_sink_connection_no_change(G, node_potential_victim):
-    # TODO: func objective
+    """
+    For attackign strategy, attacker uses the existing channels: For a given hub node, select the neighbours of hub havving degree one as the set of source nodes. Select all the nodes at a distance 
+    of two from the hub node, which are also neighbours of hub node having degree more than 1, as the set of sink. Connect the set of sources with a super source and set of sinks with a super sink.
+    Compute maximum flow from super source to super sink.
+    """
     set_source = []
     set_choice = []
     set_sink = []
@@ -48,7 +52,9 @@ def set_source_sink_connection_no_change(G, node_potential_victim):
     #print(set_sink)
     
 def check(path, master_path):
-    # TODO: func objective. maybe a better name
+    """
+    Check whether the node has already been affected by griefing attack mounted previously
+    """
     for node in path:
         if node in master_path:
             return True
@@ -56,11 +62,13 @@ def check(path, master_path):
 
 
 def select_victim(G,node):
-    # TODO: func objective    
+    """
+    select the victim node as the one having more than 1/2 the neighbours of degree 1
+    """
     
     node_potential_victim = "-1"
     
-    # select the victim node as the one having more than 1/2 the neighbours of degree 1
+    
     
     count = 0
     deg_chosen = G.nodes[node]['degree']
@@ -76,6 +84,11 @@ def select_victim(G,node):
     return node_potential_victim
 
 def set_source_sink_connection(G, node_potential_victim, attacker):
+    """
+    For attackign strategy, attacker establishes new chanels: For a given hub node, select the neighbours of hub having degree one as the source node and rest of
+    the neighbours as the set of sink. Select the set of source and set of sink such that weight (summation of capacity of edges) of each set is equivalent. Connect the set of sources with a super source and set of sinks with a super sink.
+    Compute maximum flow from super source to super sink.
+    """
     set_source = []
     set_sink = []
     
