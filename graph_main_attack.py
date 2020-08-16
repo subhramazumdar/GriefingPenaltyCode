@@ -9,7 +9,7 @@ from graph_visualization_helpers import plot_graph, set_graph_color, set_node_co
 from common import get_id
 from attack_competitive_best import launch_attack_griefing
 from attacker_competitive_best_penalty import launch_attack_griefing_penalty
-from centrality_measure import set_bet_centrality,set_deg_nodes,set_node_capacity,read_graph,filter_snapshot_data
+from centrality_measure import set_bet_centrality, set_deg_nodes, set_node_capacity, read_graph, filter_snapshot_data
 
 
         
@@ -18,15 +18,13 @@ def main():
 
     logging.basicConfig(format='\n%(levelname)s: %(message)s', level=logging.INFO)
 
-    
-
     with open(sys.argv[1]) as f:
         source = json.load(f)
 
     source = filter_snapshot_data(source)
 
                 
-    G=read_graph(source)    
+    G = read_graph(source)    
     set_graph_color(G)
     #print('\nThe two top capacity nodes')
     set_node_capacity(G)
@@ -49,33 +47,33 @@ def main():
     # plot_graph(G)
     
     #TODO Take into account the budget of attacker as well
+    G_tmp = G.copy()
+    
+    
+    
+    
+    # based on fixed budget of attacker, find out the number of nodes which can be attacked
+    budget = int(sys.argv[2])
+    gamma = float(sys.argv[3])
+    per_tx_val = int(sys.argv[4])
+    G_tmp = G.copy()
+    output_file = open(sys.argv[5],"a")
+    
+    
+    roi_htlc = launch_attack_griefing(G_tmp, budget, per_tx_val)
+    
     G_tmp=G.copy()
-    
-    
-    
-    
-    #based on fixed budget of attacker, find out the number of nodes which can be attacked
-    budget=int(sys.argv[2])
-    gamma=float(sys.argv[3])
-    per_tx_val=int(sys.argv[4])
-    G_tmp=G.copy()
-    f1=open(sys.argv[5],"a")
-    
-    
-    roi1=launch_attack_griefing(G_tmp,budget,per_tx_val)
-    
-    G_tmp=G.copy()
-    #select the highest capacity node as the attacker node, for HTLC-GP with griefing
-    roi2=launch_attack_griefing_penalty(G_tmp,budget,gamma,per_tx_val)
+    # select the highest capacity node as the attacker node, for HTLC-GP with griefing
+    roi_hllc_gp = launch_attack_griefing_penalty(G_tmp, budget, gamma, per_tx_val)
 
     #G_tmp=G.copy()
     
-    f1.write(sys.argv[1]+" "+sys.argv[2]+" "+str(roi1)+" "+sys.argv[3]+" "+sys.argv[4]+" "+str(roi2)+"\n")
-    f1.close()
+    output_file.write(sys.argv[1]+" "+sys.argv[2]+" "+str(roi_htlc)+" "+sys.argv[3]+" "+sys.argv[4]+" "+str(roi_htlc_gp)+"\n")
+    output_file.close()
     
     
 
-    f.close()
+    # f.close()
     #mount an attack based on cut set
     #cutset_edges=attack_based_on_cutset(G_tmp,deg_node)
 

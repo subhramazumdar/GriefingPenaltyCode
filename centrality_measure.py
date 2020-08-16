@@ -128,33 +128,35 @@ def find_attacker_and_target (G):
     
     
     
-    centrality_id=sorted(G.nodes(data=True), key=lambda x:x[1]['betweenness_centrality'],reverse=True)
+    centrality_id = sorted(G.nodes(data=True), key=lambda x:x[1]['betweenness_centrality'], reverse=True)
     
-    #select a victim node with high betweeneness_centrality and attacker node with low betweeneness_centrality. The logic behind this is to ensure that attacker_node is the one which previously didn't get many transactions request and hence earned low processing fee
+    # select a victim node with high betweeneness_centrality and attacker node with low betweeneness_centrality. The logic behind this is to ensure that attacker_node is the one which previously didn't get many transactions request and hence earned low processing fee
     #victim_node=centrality_id[0][0]
-    for j in centrality_id:
-        if G.nodes[j[0]]['betweenness_centrality']==0:
-            attacker_node=j[0]
+    for node in centrality_id:
+        if G.nodes[node[0]]['betweenness_centrality'] == 0:
+            attacker_node = node[0]
     return attacker_node
 
 
-def connect_supper_source_sink(G,centrality_node_list,attack_node=None):
-    #select last 50 minimum degree nodes as source
-    count=0
+def connect_supper_source_sink(G, centrality_node_list, attack_node=None):
+    """
+    select last 50 minimum degree nodes as source
+    """
+    count = 0
     
-    for e in centrality_node_list:
-        if G.nodes[e[0]]['degree']>1:
-            
+    for edge in centrality_node_list:
+        if G.nodes[edge[0]]['degree']>1:
             break
-        count=count+1                
+        count = count+1                
     
-    #consider all the nodes which have degree 1, divide the set into 2 parts, one forming source set and other sink set
-    a=int(count/2)
-    b=int(count/2+1)
+    # consider all the nodes which have degree 1, divide the set into 2 parts, one forming source set and other sink set
+    # TODO: better names for a and b
+    a = int(count/2)
+    b = int(count/2+1)
     logging.info("Number of source-sink pairs\n")
     print(a)
-    multi_source=get_id(centrality_node_list[:a])
-    multi_sink=get_id(centrality_node_list[b:count])
+    multi_source = get_id(centrality_node_list[:a])
+    multi_sink = get_id(centrality_node_list[b:count])
     
     #print(multi_source)
     #print(multi_sink)
@@ -178,18 +180,22 @@ def connect_supper_source_sink(G,centrality_node_list,attack_node=None):
     
     #add edges of very large capacity to super source and super sink
     for node in multi_source:
-        G.add_edge('0',node,capacity=300000000000000000000)
+        G.add_edge('0', node, capacity=300000000000000000000)
 
     for node in multi_sink:
-        G.add_edge(node,'1',capacity=300000000000000000000)        
+        G.add_edge(node, '1', capacity=300000000000000000000)        
     
     for edge in G.edges:
-        G.edges[edge]['weight']=int(G.edges[edge]['capacity'])
+        G.edges[edge]['weight'] = int(G.edges[edge]['capacity'])
     
     return multi_source
 
 def read_graph(source):
-    
+    """
+    Read a graph from source and filter out the data to form a networkx graph object
+    Source is assumed to be a dictionary formed from reading json data as supplied in snapshot
+    """
+
     G = nx.Graph()
     
     for node in source['nodes']:
@@ -214,31 +220,30 @@ def read_graph(source):
     G=G.subgraph(c).copy() 
     print('total nodes:', G.number_of_nodes())
     print('total edges:', G.number_of_edges())
-    # Setting color for nodes
     
     nx.set_edge_attributes(G,0,'deposit2')
     nx.set_node_attributes(G,0,'time')
     nx.set_node_attributes(G,0,'basefee')
     nx.set_node_attributes(G,0,'rate')
-    #making channels dual funded
+    # making channels dual funded by splitting capacities equally
     for edge in G.edges:
-        G.edges[edge]['capacity']=int(G.edges[edge]['capacity'])/2
-        G.edges[edge]['deposit2']=int(G.edges[edge]['capacity'])
+        G.edges[edge]['capacity'] = int(G.edges[edge]['capacity'])/2
+        G.edges[edge]['deposit2'] = int(G.edges[edge]['capacity'])
         if int(G.edges[edge]['time1'])>0 and int(G.edges[edge]['time2'])>0 :
-            G.nodes[edge[0]]['time']=int(G.edges[edge]['time1'])
-            G.nodes[edge[1]]['time']=int(G.edges[edge]['time2'])
+            G.nodes[edge[0]]['time'] = int(G.edges[edge]['time1'])
+            G.nodes[edge[1]]['time'] = int(G.edges[edge]['time2'])
             
-            if G.nodes[edge[0]]['basefee']==0:
-                G.nodes[edge[0]]['basefee']=int(G.edges[edge]['base1'])
+            if G.nodes[edge[0]]['basefee'] == 0:
+                G.nodes[edge[0]]['basefee'] = int(G.edges[edge]['base1'])
             
-            if G.nodes[edge[1]]['basefee']==0:
-                G.nodes[edge[1]]['basefee']=int(G.edges[edge]['base2'])
+            if G.nodes[edge[1]]['basefee'] == 0:
+                G.nodes[edge[1]]['basefee'] = int(G.edges[edge]['base2'])
                 
-            if G.nodes[edge[0]]['rate']==0:    
-                G.nodes[edge[0]]['rate']=int(G.edges[edge]['feerate1'])
+            if G.nodes[edge[0]]['rate'] == 0:    
+                G.nodes[edge[0]]['rate'] = int(G.edges[edge]['feerate1'])
                 
-            if G.nodes[edge[1]]['rate']==0:        
-                G.nodes[edge[1]]['rate']=int(G.edges[edge]['feerate2'])
+            if G.nodes[edge[1]]['rate'] == 0:        
+                G.nodes[edge[1]]['rate'] = int(G.edges[edge]['feerate2'])
             
     return G
 

@@ -10,7 +10,7 @@ from common import get_id
 from attack_competitive_no_change_topology_penalty import launch_attack_griefing_no_change_penalty
 from attack_competitive_no_change_topology import launch_attack_griefing_no_change
 
-from centrality_measure import set_bet_centrality,set_deg_nodes,set_node_capacity,read_graph,filter_snapshot_data
+from centrality_measure import set_bet_centrality, set_deg_nodes, set_node_capacity, read_graph, filter_snapshot_data
 
         
 
@@ -26,7 +26,7 @@ def main():
     source = filter_snapshot_data(source)
 
                 
-    G=read_graph(source)    
+    G = read_graph(source)    
     set_graph_color(G)
     #print('\nThe two top capacity nodes')
     set_node_capacity(G)
@@ -49,29 +49,31 @@ def main():
     # plot_graph(G)
     
     #TODO Take into account the budget of attacker as well
-    G_tmp=G.copy()
+    G_tmp = G.copy()
     
     
     
     
     
 
-    budget=int(sys.argv[2])
-    gamma=float(sys.argv[3])
-    per_tx_val=int(sys.argv[4])
+    budget = int(sys.argv[2])
+    gamma = float(sys.argv[3])
+    per_tx_val = int(sys.argv[4])
     
 
     
-    f1=open(sys.argv[5],"a")
-    budget_output1,roi3,count_path=launch_attack_griefing_no_change(G_tmp,budget,per_tx_val,f1)
+    output_file = open(sys.argv[5],"a")
+
+    #TODO: can we name budget_output1, roi3, roi4 etc better? like roi_htlc or something similar?
+    budget_output1, roi3, count_path = launch_attack_griefing_no_change(G_tmp, budget, per_tx_val, output_file)
     
-    G_tmp=G.copy()
-    budget_output2,roi4,count=launch_attack_griefing_no_change_penalty(G_tmp,budget,per_tx_val,gamma,f1)
+    G_tmp = G.copy()
+    budget_output2, roi4, count = launch_attack_griefing_no_change_penalty(G_tmp, budget, per_tx_val, gamma, output_file)
     
-    f1.write(sys.argv[1]+" "+sys.argv[2]+" "+str(budget_output1)+" "+str(roi3)+" "+sys.argv[3]+" "+sys.argv[4]+" "+str(budget_output1)+" "+str(roi4)+" "+str(count_path)+"\n")
+    output_file.write(sys.argv[1]+" "+sys.argv[2]+" "+str(budget_output1)+" "+str(roi3)+" "+sys.argv[3]+" "+sys.argv[4]+" "+str(budget_output1)+" "+str(roi4)+" "+str(count_path)+"\n")
     
-    f1.close()
-    f.close()
+    output_file.close()
+    # f.close()
     
     #plot_graph(G)
     

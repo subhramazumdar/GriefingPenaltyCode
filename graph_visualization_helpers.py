@@ -33,8 +33,14 @@ def plot_graph (G):
     show(plot)
 
 def set_graph_color (G):
+    """
+    Set attribute 'color' for every node in G
+    """
     nx.set_node_attributes(G, Spectral4[0], 'color')
 
 def set_node_color (G, nodes, color):
+    """
+    For the given nodes, set the color attribute to the value supplied in color parameter
+    """
     for node in nodes:
         G.nodes[node]['color'] = color
