@@ -64,7 +64,7 @@ def main():
     
     G_tmp=G.copy()
     # select the highest capacity node as the attacker node, for HTLC-GP with griefing
-    roi_hllc_gp = launch_attack_griefing_penalty(G_tmp, budget, gamma, per_tx_val)
+    roi_htlc_gp = launch_attack_griefing_penalty(G_tmp, budget, gamma, per_tx_val)
 
     #G_tmp=G.copy()
     
