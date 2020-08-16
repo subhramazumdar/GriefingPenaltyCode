@@ -21,7 +21,7 @@ do
       do
         
         
-            for z in snapshots/*01.json
+            for z in snapshots/*.json
             do
                 python3 graph_main_no_change_attack.py $z $budget $penalty $txval output_original.csv
             done
