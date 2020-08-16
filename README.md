@@ -6,7 +6,7 @@ bash test.sh
 ```
 ## Programming Language and Libraries
 ````
-python 3.8.2
+Python 3.8.2
 NetworkX 2.4
 ````
 ## Reference for the snapshots
