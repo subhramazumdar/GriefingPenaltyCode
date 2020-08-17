@@ -38,10 +38,10 @@ def mount_griefing_penalty(G,attacker_node,node_potential_victim,set_source,set_
         if target_select=="-1":
             return budget,loss
         
-        time_attacker=G.nodes[attacker_node]['time']
-        time_node_select=G.nodes[node_select]['time']
-        time_target_select=G.nodes[target_select]['time']
-        time_victim_select=G.nodes[node_potential_victim]['time']
+        time_attacker=G.nodes[attacker_node]['time']+G.nodes[node_select]['time']+G.nodes[target_select]['time']+G.nodes[node_potential_victim]['time']
+        time_node_select=time_attacker-G.nodes[node_select]['time']
+        time_target_select=time_node_select-G.nodes[target_select]['time']
+        time_victim_select=time_target_select-G.nodes[node_potential_victim]['time']
         
         #if budget is inadequate then reset minimum capacity to be blocked
         
