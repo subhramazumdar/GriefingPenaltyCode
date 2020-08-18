@@ -7,11 +7,11 @@ from common import get_id,select_victim,set_source_sink_connection_no_change,che
         
             
 def mount_griefing_attack_no_change_penalty(G,per_tx_val,flow_edges,flow_val,node_potential_target,master_path_set,budget,gamma):
-    """
-    Select an attacker which has not yet utilized the capacity of its outgoing edges fully for routing transaction. It selects a victim node, which routes many transaction through
-    itself. It targets the victim so that it can block certain fraction of transactions getting routed through the victim. Such transactions will get routed
-    through the attacker after the griefing attack. Here, the difference is that now attacker has to pay penalty to the victim and other nodes affected for denying service.
-    """
+                """
+                Select an attacker which has not yet utilized the capacity of its outgoing edges fully for routing transaction. It selects a victim node, which routes many transaction through
+                itself. It targets the victim so that it can block certain fraction of transactions getting routed through the victim. Such transactions will get routed
+                through the attacker after the griefing attack. Here, the difference is that now attacker has to pay penalty to the victim and other nodes affected for denying service.
+                """
                 min_val=0
                 diff=0
                 profit=0
