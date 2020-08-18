@@ -84,16 +84,17 @@ def mount_griefing_attack_no_change_penalty(G,per_tx_val,flow_edges,flow_val,nod
                 if victim_neighbour=="-1" or attacker_neighbour=="-1":
                     return min_capacity,profit,flow_edges,flow_val,master_path_set        
                 
-                
+                paths.append((attacker_neighbour,attacker))
+                paths.append((attacker,node_potential_target))
                 paths.append((node_potential_target,victim))
                 paths.append((victim,victim_neighbour)) 
                 
                     
-                min_capacity=min(diff,min([int(G.edges[e]['capacity']) for e in paths]),G.edges[attacker_neighbour,attacker]['deposit2'],G.edges[node_potential_target,attacker]['deposit2'],budget) 
+                min_capacity=min(diff,min([int(G.edges[e]['capacity']) for e in paths]),G.edges[attacker_neighbour,attacker]['deposit2'],G.edges[node_potential_target,attacker]['deposit2'],G.edges[node_potential_target,victim]['deposit2'],G.edges[victim,victim_neighbour]['deposit2'],budget) 
         
                 
-                time_add_prev=G.nodes[attacker]['time']+G.nodes[node_potential_target]['time']+G.nodes[victim]['time']
-                time_add=time_add_prev
+                
+                time_add=G.nodes[attacker]['time']+G.nodes[node_potential_target]['time']+G.nodes[victim]['time']
                 
                 if victim_neighbour!=attacker_neighbour:    
                         path_list=nx.edge_disjoint_paths(G,victim_neighbour,attacker_neighbour)
@@ -139,13 +140,19 @@ def mount_griefing_attack_no_change_penalty(G,per_tx_val,flow_edges,flow_val,nod
                     
                     
                     
-                penalty=time_add*gamma*10*min_capacity
+                penalty=(time_add+(time_add-G.nodes[node_potential_target]['time'])+(time_add-G.nodes[node_potential_target]['time']-G.nodes[victim]['time']))*gamma*10*min_capacity
+                time_check=time_add-G.nodes[node_potential_target]['time']-G.nodes[victim]['time']
+                time_add_sum=time_add+(time_add-G.nodes[node_potential_target]['time'])+(time_add-G.nodes[node_potential_target]['time']-G.nodes[victim]['time'])
+                for node in paths1:
+                    penalty=penalty+(time_check-G.nodes[node]['time'])*gamma*10*min_capacity
+                    time_check=time_check-G.nodes[node]['time']
+                    time_add_sum=time_add_sum+time_check-G.nodes[node]['time']
                 
                 change_wt=min_capacity
                 
                 while min_capacity<(change_wt+penalty):
                     change_wt=change_wt*0.05
-                    penalty=time_add*gamma*10*change_wt
+                    penalty=time_add_sum*gamma*10*change_wt
                             
                 G.edges[attacker_neighbour,attacker]['deposit2']=int(G.edges[attacker_neighbour,attacker]['deposit2'])-change_wt
             
@@ -153,25 +160,28 @@ def mount_griefing_attack_no_change_penalty(G,per_tx_val,flow_edges,flow_val,nod
                 
                 G.edges[attacker_neighbour,attacker]['capacity']=int(G.edges[attacker_neighbour,attacker]['capacity'])-penalty
             
-                G.edges[node_potential_target,attacker]['capacity']=int(G.edges[node_potential_target,attacker]['capacity'])-(G.nodes[attacker]['time']*gamma*10*change_wt)
+                G.edges[node_potential_target,attacker]['capacity']=int(G.edges[node_potential_target,attacker]['capacity'])-(time_add*gamma*10*change_wt)
                 
             
                 G.edges[node_potential_target,victim]['capacity']=int(G.edges[node_potential_target,victim]['capacity'])-change_wt
-                G.edges[node_potential_target,victim]['deposit2']=int(G.edges[node_potential_target,victim]['deposit2'])-((G.nodes[attacker]['time']+G.nodes[node_potential_target]['time'])*gamma*10*change_wt)
+                G.edges[node_potential_target,victim]['deposit2']=int(G.edges[node_potential_target,victim]['deposit2'])-((time_add+time_add-G.nodes[node_potential_target]['time'])*gamma*10*change_wt)
                 
             
                 G.edges[victim_neighbour,victim]['capacity']=int(G.edges[victim_neighbour,victim]['capacity'])-change_wt
-                G.edges[victim_neighbour,victim]['deposit2']=int(G.edges[victim_neighbour,victim]['deposit2'])-(time_add_prev*gamma*10*change_wt)
+                G.edges[victim_neighbour,victim]['deposit2']=int(G.edges[victim_neighbour,victim]['deposit2'])-((time_add+time_add-G.nodes[node_potential_target]['time']+time_add-G.nodes[node_potential_target]['time']-G.nodes[victim]['time'])*gamma*10*change_wt)
                 
                 
+                time_check=time_add+time_add-G.nodes[node_potential_target]['time']+time_add-G.nodes[node_potential_target]['time']-G.nodes[victim]['time']
+                time_add_new=time_add-G.nodes[node_potential_target]['time']-G.nodes[victim]['time']
                 for a,b in zip(paths1[:-1], paths1[1:]):
                             G.edges[a,b]['capacity']=int(G.edges[a,b]['capacity'])-change_wt
-                            G.edges[a,b]['deposit2']=int(G.edges[a,b]['deposit2'])-((time_add_prev+G.nodes[a]['time'])*gamma*10*change_wt)
-                            time_add_prev+=G.nodes[a]['time']
+                            G.edges[a,b]['deposit2']=int(G.edges[a,b]['deposit2'])-((time_check+time_add-G.nodes[a]['time'])*gamma*10*change_wt)
+                            time_check=time_check+time_add_new-G.nodes[a]['time']
+                            time_add_new=time_add_new-G.nodes[a]['time']
                             
                 
                 #insert(paths1,master_path_set)
-                
+                print("I changed it")
                 master_path_set.append(attacker)
                 master_path_set.append(victim)
                 master_path_set.append(node_potential_target)
@@ -185,7 +195,7 @@ def mount_griefing_attack_no_change_penalty(G,per_tx_val,flow_edges,flow_val,nod
                 
                 if flow_edges[node_potential_target][attacker]>flow_attack:
                         profit=(((flow_edges[node_potential_target][attacker]-flow_attack)/per_tx_val)*G.nodes[attacker]['basefee']/1000)+(G.nodes[attacker]['rate']*((flow_edges[node_potential_target][attacker]-flow_attack)))/1000000000
-                        profit=profit-penalty+G.nodes[attacker]['time']*gamma*10*change_wt
+                        profit=profit-penalty+time_add*gamma*10*change_wt
                 
                 
                 return min_capacity,profit,flow_edges,flow_val,master_path_set        
