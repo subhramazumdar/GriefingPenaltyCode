@@ -9,6 +9,8 @@ def mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink_rem
     """
     Exhaust several channels of the victim
     """
+    count_impacted=0
+    coll_temp=0
     while budget>0:
         node_select="-1"
         min_wt=300000000000000000000
@@ -20,7 +22,8 @@ def mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink_rem
                 node_select=j
                 
         if node_select=="-1":
-            return budget
+            print("not worth")
+            return budget,0,coll_temp
         set_source.remove(node_select)
         #if budget is inadequate then reset minimum capacity to be blocked
         if budget < 2*min_wt:
@@ -39,7 +42,8 @@ def mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink_rem
         
         #if no such neighbour of victim node exist then abort
         if target_select=="-1":
-            return budget
+            print("not worth")
+            return budget,0,coll_temp
         #add edge from attacker node to one of the neighbour of victim
         G.add_edge(target_select,attacker_node,capacity=min_wt,deposit2=min_wt)
         #add edge from attacker node to one of the neighbour of victim node_select
@@ -72,6 +76,9 @@ def mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink_rem
         #logging.info("The path chosen for griefing attack:")
         #print(paths)
         logging.info("Bottleneck capacity of the path: ")
+        #coll_temp=coll_temp+3*min_wt
+        coll_temp=coll_temp+min_wt
+        count_impacted=count_impacted+1
         print(min_wt)
         
         
@@ -81,7 +88,7 @@ def mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink_rem
         
     
     
-    return budget
+    return budget,count_impacted,coll_temp
 
 
 def attack_best_case_earning(G,attacker_node,node_potential_victim,budget=30000):    
@@ -102,13 +109,13 @@ def attack_best_case_earning(G,attacker_node,node_potential_victim,budget=30000)
     """
     mount griefing attack by exhausting several channels of the chosen victim nodes till the budget becomes 0 or till no condition mentioned in the function holds true
     """
-    budget=mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink,budget)
+    budget,count_impacted,coll_temp=mount_griefing(G,attacker_node,node_potential_victim,set_source,set_sink,budget)
     
     attack_money=0  
     #if there is no change in budget then attack did not get mounted
     #for edge in G.edges:
     #        G.edges[edge]['weight']=int(G.edges[edge]['capacity'])
-    if budget<original_budget:
+    if budget<original_budget and coll_temp>0:
         #estimate the flow after the attack
         vict_money,attack_money=call_flow(G,node_potential_victim,attacker_node)
 
@@ -124,7 +131,7 @@ def attack_best_case_earning(G,attacker_node,node_potential_victim,budget=30000)
     G.remove_node('1')
 
     #return the profit earned by attacker                
-    return attack_money,budget
+    return attack_money,budget,count_impacted,coll_temp
 
 
 def launch_attack_griefing(G,budget,per_tx_val):
@@ -142,6 +149,8 @@ def launch_attack_griefing(G,budget,per_tx_val):
     #used_victim=[]
     profit=0
     original_budget=budget
+    last_budget=budget
+    collateral=0
     while budget>0 and len(centrality_id)>0:
         attacker_money=0
         """
@@ -161,12 +170,16 @@ def launch_attack_griefing(G,budget,per_tx_val):
         print(attacker_node)
      
         #estimate the earning of griefer after attack for a given attacker,victim pair
-        attacker_money,budget=attack_best_case_earning(G,attacker_node,node_potential_victim,budget)
+        attacker_money,budget,count_impacted,coll_temp=attack_best_case_earning(G,attacker_node,node_potential_victim,budget)
+        if budget==last_budget:
+            continue
+        else:
+           last_budget=budget
         logging.info("Budget: ")
         print(budget)
         
         profit=profit+attacker_money
-        
+        collateral=collateral+coll_temp
         #used_victim.append(node_potential_victim)
         #remove the node from the set
         centrality_id.remove(node_potential_victim)
@@ -179,4 +192,4 @@ def launch_attack_griefing(G,budget,per_tx_val):
     print(original_budget)
     logging.info("Earning of attacker : ")
     print(profit)
-    return profit
+    return profit,collateral
