@@ -40,6 +40,14 @@ def set_deg_nodes(G):
     nx.set_node_attributes(G, degrees, 'degree')
     
 
+def set_edge_centrality(G):
+    """
+    Given a graph, put edge_centrality info of each edge as an attribute 
+    """
+    measure_of_edge_centrality= nx.edge_betweenness_centrality(G, k=None, normalized=True, weight=None, seed=None)
+    nx.set_edge_attributes(G, measure_of_edge_centrality, 'edge_centrality')
+    
+    
 def set_bet_centrality(G):
     """
     Given a graph, put betweenness_centrality info of each node as an attribute 
@@ -188,6 +196,23 @@ def connect_supper_source_sink(G,centrality_node_list,attack_node=None):
     
     return multi_source
 
+def read_graph1(source):
+    G = nx.Graph()
+    
+    for node in source['nodes']:
+        G.add_node(node['pub_key'], alias=node['alias'])
+        
+    #    print('Adding node with pubkey', node['pub_key'])
+
+    # print(G.nodes)
+    # 
+    G.remove_nodes_from(list(nx.isolates(G)))
+    
+    for edge in source['edges']:
+        G.add_edge(edge['node1_pub'], edge['node2_pub'])
+        
+    return G
+
 def read_graph(source):
     
     G = nx.Graph()
@@ -217,13 +242,28 @@ def read_graph(source):
     # Setting color for nodes
     
     nx.set_edge_attributes(G,0,'deposit2')
+    nx.set_edge_attributes(G,0,'probability')
     nx.set_node_attributes(G,0,'time')
     nx.set_node_attributes(G,0,'basefee')
     nx.set_node_attributes(G,0,'rate')
+    nx.set_node_attributes(G, 0, 'capacity')
+    nx.set_edge_attributes(G, 0, 'htlc')
     #making channels dual funded
+    
+    
+    
+            
     for edge in G.edges:
         G.edges[edge]['capacity']=int(G.edges[edge]['capacity'])/2
+        
+        
+            
+
         G.edges[edge]['deposit2']=int(G.edges[edge]['capacity'])
+        
+        
+        
+        
         if int(G.edges[edge]['time1'])>0 and int(G.edges[edge]['time2'])>0 :
             G.nodes[edge[0]]['time']=int(G.edges[edge]['time1'])
             G.nodes[edge[1]]['time']=int(G.edges[edge]['time2'])
