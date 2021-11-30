@@ -10,22 +10,28 @@ for z in os.listdir(sys.argv[1]):
         print(z)
         k="snapshots/"+z
         print(k)
-        path=5
+        path=20
         while path<=20:
-            profit=0.00001
+            profit=3
         
-            while profit<=0.0005:
+            while profit<=3:
                 txval=15000
                 while txval<=60000:
-                    corrupt=0
-                    while corrupt<70:
+                    corrupt=0.02
+                    while corrupt<30:
                         transact=20000
                         while transact<=20000:
-                            print(corrupt)
-                            os.system("python3 gametheory.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(profit)+" "+str(corrupt)+" "+str(transact)+" output_gt_newtheta.csv")
+                            frac=1000
+                            while frac<=1000:
+                                q=0.7
+                                while q<=0.7:
+                                    print(corrupt)
+                                    os.system("python3 gametheory.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(profit)+" "+str(corrupt)+" "+str(transact)+" output_gt_jisa.csv"+" "+str(frac)+" "+str(q))
+                                    q=q+0.2
+                                frac=frac*10
                             break
-                        corrupt=corrupt+10
+                        corrupt=corrupt*2
                     txval=txval*2
-                profit=profit*5
+                profit=profit+4
             path=path+5
             

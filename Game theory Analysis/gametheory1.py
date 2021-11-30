@@ -4,6 +4,7 @@ import networkx as nx
 import sys
 import random
 import itertools
+import math
 
 from graph_visualization_helpers import plot_graph, set_graph_color, set_node_color
 
@@ -12,7 +13,7 @@ from common import get_id
 #from attacker_channel_griefing import launch_attack_griefing_channel_penalty
 from centrality_measure import set_bet_centrality,set_deg_nodes,set_node_capacity,read_graph,filter_snapshot_data
 
-def launch_attack_channel(G,gamma,per_tx_val,path_length,source,num_corrupted,corruption,profit,max_limit):
+def launch_attack_channel(G,gamma,per_tx_val,path_length,source,num_corrupted,corruption,val,max_limit,frac,q):
     
     i=0
     count_tx=0
@@ -21,6 +22,7 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,source,num_corrupted,co
     min_capacity=30000000000000000000000000000
     min_deposit=30000000000000000000000000000
     factor=False
+    prev_flow=per_tx_val
     for node in source:
         min_capacity=30000000000000000000000000000
         min_deposit=30000000000000000000000000000
@@ -35,9 +37,11 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,source,num_corrupted,co
         cum_penalty=0
         time=0
         set_corruption=0
+        
         if current in num_corrupted:
             set_corruption=1
-            
+        
+        
             
         list_node=[]
         
@@ -84,10 +88,10 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,source,num_corrupted,co
         
         start_node=current
         flow=min(per_tx_val,min_capacity)
+        time=int(2016/path_length)
         
-        
-        
-        
+        flow=flow/(1+gamma*10*(path_length/2)*(2*time+((path_length-1)*100)))
+        flow_true=min(per_tx_val,min_capacity)
         #print(min_capacity)
         #print(min_deposit)
         #collateral=collateral+(path_now-1)*flow
@@ -97,28 +101,56 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,source,num_corrupted,co
         
         #count_float=float(0.9/(0.9+(flow*profit*int(2016/path_length))))
         #print(count_float)
-        print(float(corruption/100))
-        if 0.5>float(corruption/100):
+        #print(float(corruption/100))
+        lambda_set=float((val*(2016/path_length))/144)
+        
+        k=float(float(math.exp(-lambda_set)*pow(lambda_set,float(flow/frac)))/math.factorial(int(flow/frac)))
+        
+        o1=float((flow/frac)*k)
+        
+        fee1=float(o1*(1+0.000001*frac))
+        
+        flow_penalty=flow*gamma*10*((path_length-1)/2)*(2*time+((path_length-2)*100))
+        k=float((math.exp(-lambda_set)*pow(lambda_set,float(flow_penalty/frac)))/math.factorial(int(flow_penalty/frac)))
+        o2=float((flow_penalty/frac)*k)
+        fee2=float(o2*(1+0.000001*frac))
+        
+        x=float((1+0.000001*flow_true)+fee1+(fee2))
+        
+        y=float(1+0.000001*flow_true)
+        print(str(y)+" "+str(x)+" "+str(fee1)+" "+str(fee2))
+        calc_theta=float(y/x)        
+        
+        
+        #theta2=0.4
+        if float(corruption/100)<calc_theta:
             
             
             count_tx=count_tx+1
             if set_corruption==1:
-                pay_A=pay_A-1
-                pay_B=pay_B+flow+(flow*profit*int(2016/path_length))
+                
+                pay_A=pay_A-fee1-fee2
+                k=float(float(math.exp(-lambda_set)*pow(lambda_set,float(flow_true/frac)))/math.factorial(int(flow_true/frac)))
+        
+                o3=float((flow_true/frac)*k)
+        
+                fee3=float(o3*(1+0.000001*frac))
+                pay_B=pay_B+flow_true+2*fee3+154
                 for e in list_node:                    
                     G.edges[e]['capacity']=G.edges[e]['capacity']-flow
         
                     
             else:
                 
-                pay_A=pay_A+1
                     
-                pay_B=pay_B+flow
+                pay_A=pay_A+(1+0.000001*flow_true)    
+                pay_B=pay_B+flow_true
                 for e in list_node:
                     G.edges[e]['capacity']=G.edges[e]['capacity']-flow
             
                 
-                    
+        else:
+                break
             
         
             
@@ -263,17 +295,20 @@ def main():
     
     
     #based on fixed budget of attacker, find out the number of nodes which can be attacked
-    
+    print(sys.argv[2])
     gamma=float(sys.argv[2])
+    
     per_tx_val=int(sys.argv[3])
     path_length=int(sys.argv[4])
-    profit=float(sys.argv[5])
+    val=int(sys.argv[5])
     G_tmp=G.copy()
-    corruption=int(sys.argv[6])
+    corruption=float(sys.argv[6])
     f1=open(sys.argv[8],"a")
-    
+    frac=int(sys.argv[9])
+    q=float(sys.argv[10])
     num_corrupted=int(corruption*G.number_of_nodes()/100)
-        
+    
+    
         
     num_transaction=int(sys.argv[7])
     #path_length=int(sys.argv[6])
@@ -305,6 +340,7 @@ def main():
         
     c=[]
     corrupted_nodes=[]
+    
     count=0
     while count<num_corrupted:
           r=random.randint(1,G.number_of_nodes()-1)
@@ -314,18 +350,23 @@ def main():
     
     for item2 in c:    
         corrupted_nodes.append(node_list[item2])
-        
+    
+    count=0
+    p=[]
+    
+    
+    
     print(len(corrupted_nodes))
     G_tmp=G.copy()
     
     
     
-    pay_A,pay_B,count_tx=launch_attack_channel(G_tmp,gamma,per_tx_val,path_length,source,corrupted_nodes,corruption,profit,2016)
+    pay_A,pay_B,count_tx=launch_attack_channel(G_tmp,gamma,per_tx_val,path_length,source,corrupted_nodes,corruption,val,2016,frac,q)
     #budget1=launch_attack(G_tmp,per_tx_val,path_length,adv_budget,2016)
     if count_tx==0:
-        f1.write(sys.argv[1]+" "+str(per_tx_val)+" "+" "+str(path_length)+" "+str(corruption)+" "+str(0)+" "+str(0)+"\n")
+        f1.write(sys.argv[1]+" "+str(per_tx_val)+" "+" "+str(path_length)+" "+str(corruption)+" "+str(0)+" "+str(0)+" "+str(val)+" "+str(frac)+" "+str(q)+"\n")
     else:    
-        f1.write(sys.argv[1]+" "+str(per_tx_val)+" "+" "+str(path_length)+" "+str(corruption)+" "+str(float(pay_A/count_tx))+" "+str(float(pay_B/count_tx))+"\n")
+        f1.write(sys.argv[1]+" "+str(per_tx_val)+" "+" "+str(path_length)+" "+str(corruption)+" "+str(float(pay_A/count_tx))+" "+str(float(pay_B/count_tx))+" "+str(val)+" "+str(frac)+" "+str(q)+"\n")
     G_tmp=G.copy()
     
     

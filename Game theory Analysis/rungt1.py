@@ -5,27 +5,33 @@ path=2
 corrupt=5
 transact=13000
 for z in os.listdir(sys.argv[1]):
-        penalty=0
+        penalty=0.0001
         
         print(z)
         k="snapshots/"+z
         print(k)
-        path=5
+        path=20
         while path<=20:
-            profit=0.00001
+            profit=3
         
-            while profit<=0.0005:
+            while profit<=3:
                 txval=15000
                 while txval<=60000:
-                    corrupt=5
-                    while corrupt<=45:
+                    corrupt=2
+                    while corrupt<=100:
                         transact=20000
                         while transact<=20000:
-                            print(corrupt)
-                            os.system("python3 gametheory1.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(profit)+" "+str(corrupt)+" "+str(transact)+" output_gt_new2.csv")
+                            frac=1000
+                            while frac<=1000:
+                                q=0.7
+                                while q<=0.7:
+                                    print(corrupt)
+                                    os.system("python3 gametheory1.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(profit)+" "+str(corrupt)+" "+str(transact)+" output_gt_penalty.csv"+" "+str(frac)+" "+str(q))
+                                    q=q+0.2
+                                frac=frac*10
                             break
                         corrupt=corrupt+10
                     txval=txval*2
-                profit=profit*5
+                profit=profit+4
             path=path+5
             
