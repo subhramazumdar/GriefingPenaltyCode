@@ -16,12 +16,12 @@ for z in os.listdir(sys.argv[1]):
                     
                     txval=10000
                     while txval<=100000:
-                        path=5
+                        path=20
                         while path<=20:
                             print(z)
                             k="snapshots/"+z
                             print(k)            
-                            os.system("python3 graph_collateral_flowconstant.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(budget)+" "+str(2016/path)+" "+"output-extra-collateral-jisa0.0000001.csv")
+                            os.system("python3 graph_collateral_flowconstan-lowt.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(budget)+" "+str(2016/path)+" "+"output-extra-collateral-less0.0000001.csv")
                 
                             path=path+5
                         txval=txval*2

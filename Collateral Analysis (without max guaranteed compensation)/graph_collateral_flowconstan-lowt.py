@@ -21,7 +21,7 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
     factor=False
     count=0
     prev_per_tx_val=per_tx_val
-    while adv_budget>0.01 and count<cc1:
+    while adv_budget>0.01:
         
         prev_per_tx_val=min(adv_budget,prev_per_tx_val)
         min_capacity=30000000000000000000000000000
@@ -121,8 +121,10 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
             
         
         collateral=collateral-cum_penalty
-        
-        adv_budget=adv_budget-(cum_penalty+per_tx_val)
+        factor=float(1+((gamma*path_length*int(2016/path_length))/2)+((gamma*40*path_length*(2*path_length-1))/6))
+        factor1=float(1+(gamma*path_length*int(2016/path_length))+((gamma*40*path_length*(path_length-1))/2))
+        f1=float(factor/factor1)
+        adv_budget=adv_budget-(f1*(cum_penalty+per_tx_val))
       #  print(adv_budget)
         
     print(collateral)

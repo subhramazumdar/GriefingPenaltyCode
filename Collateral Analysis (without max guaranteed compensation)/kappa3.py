@@ -8,8 +8,8 @@ for z in os.listdir(sys.argv[1]):
     
     
         kappa=1
-        penalty=0.0000001
-        while penalty<=0.0000001:
+        penalty=0.00001
+        while penalty<=0.00001:
             while kappa<=1:
                 budget=5000000
                 while budget<=700000000:
@@ -21,8 +21,8 @@ for z in os.listdir(sys.argv[1]):
                             print(z)
                             k="snapshots/"+z
                             print(k)            
-                            os.system("python3 graph_collateral_flowconstant.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(budget)+" "+str(2016/path)+" "+"output-extra-collateral-jisa0.0000001.csv")
-                
+                            
+                            os.system("python3 graph_collateral_flowconstan-lowt.py "+str(k)+" "+str(penalty)+" "+str(txval)+" "+str(path)+" "+str(budget)+" "+str(2016/path)+" "+"output-extra-collateral-less0.00001.csv")
                             path=path+5
                         txval=txval*2
             
