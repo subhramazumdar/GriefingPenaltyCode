@@ -11,7 +11,7 @@ from common import get_id
 #from attacker_channel_griefing import launch_attack_griefing_channel_penalty
 from centrality_measure import set_bet_centrality,set_deg_nodes,set_node_capacity,read_graph,filter_snapshot_data
 
-def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max_limit):
+def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max_limit,cc1,divide):
     
     i=0
     collateral=0
@@ -20,7 +20,10 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
     
     factor=False
     count=0
-    while adv_budget>0.01:
+    prev_per_tx_val=per_tx_val
+    while adv_budget>0.01 and count<cc1:
+        
+        prev_per_tx_val=min(adv_budget,prev_per_tx_val)
         min_capacity=30000000000000000000000000000
         min_deposit=30000000000000000000000000000
         path_now=0
@@ -34,8 +37,10 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
         #print(collateral)
         current=attacker_node
         cum_penalty=0
-        time=0
+        time=int(2016/20)
         list_node=[]
+        per_tx_val=prev_per_tx_val/(1+gamma*10*(path_length/2)*(2*time+((path_length-1)*100)))
+        
         
         while time<max_limit and path_now<path_length:
             
@@ -44,8 +49,8 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
             for node in G.neighbors(current):
                 
                 
-                loc_penalty=gamma*G.nodes[current]['time']*10*per_tx_val
-                if time+G.nodes[prev_current]['time']+G.nodes[node]['time']<=max_limit and G.edges[prev_current,node]['htlc']<=481:
+                loc_penalty=gamma*time*10*per_tx_val
+                if time<=max_limit and G.edges[prev_current,node]['htlc']<=481:
                     
                     if G.edges[prev_current,node]['capacity']>=per_tx_val:
                         if min_capacity>G.edges[prev_current,node]['capacity']:
@@ -84,15 +89,11 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
             continue
         start_node=current
         #value=min(per_tx_val,min_deposit+min_capacity,adv_budget)
-        flow=per_tx_val
-        if flow>(adv_budget):
-            flow=(adv_budget)/2
-        cum_penalty=min(cum_penalty,adv_budget-fraction*flow)
-        flow=cum_penalty/(10*gamma*time)
+        
         #flow=value/(1+gamma*10*time)
         #print(flow)
         
-        if (adv_budget-(cum_penalty+flow))<0.01:
+        if (adv_budget-(cum_penalty+per_tx_val))<0.01:
             break
         
         #print(flow)
@@ -102,26 +103,28 @@ def launch_attack_channel(G,gamma,per_tx_val,path_length,adv_budget,fraction,max
         
         #print(min_capacity)
         #print(min_deposit)
-        collateral=collateral+(path_now-1)*flow
+        collateral=collateral+(path_now-1)*(per_tx_val)
         #htlc_collateral=htlc_collateral+(path_now-1)*per_tx_val
         #time_new=0
         #value=per_tx_val
         
         value=cum_penalty
         count=count+1
+        time=int(2016/20)
         for e in list_node:
             #time_new=time_new+G.nodes[e[0]]['time']print("ok")
             G.edges[e]['deposit2']=G.edges[e]['deposit2']-value    
-            G.edges[e]['capacity']=G.edges[e]['capacity']-flow
+            G.edges[e]['capacity']=G.edges[e]['capacity']-per_tx_val
             G.edges[e]['htlc']=G.edges[e]['htlc']+2
             
             collateral=collateral+value
-            value=value-flow*gamma*10*G.nodes[e[1]]['time']
+            value=value-(per_tx_val*gamma*10*time)
+            time=time+G.nodes[e[1]]['time']
             
         
         collateral=collateral-cum_penalty
         
-        adv_budget=adv_budget-(cum_penalty+flow)
+        adv_budget=adv_budget-(cum_penalty+per_tx_val)
       #  print(adv_budget)
         
     print(collateral)
@@ -151,9 +154,9 @@ def launch_attack(G,per_tx_val,path_length,adv_budget,max_limit):
         #print(collateral)
         current=attacker_node
         cum_penalty=0
-        time=0
+        time=int(2016/20)
         list_node=[]
-        
+        per_tx_val=min(per_tx_val,adv_budget)
         while time<max_limit and path_now<path_length:
             
             prev_current=current
@@ -162,7 +165,7 @@ def launch_attack(G,per_tx_val,path_length,adv_budget,max_limit):
                 
                 
                 #loc_penalty=gamma*G.nodes[current]['time']*10*per_tx_val
-                if time+G.nodes[prev_current]['time']+G.nodes[node]['time']<=max_limit and G.edges[prev_current,node]['htlc']<483:
+                if time<=max_limit and G.edges[prev_current,node]['htlc']<483:
                     
                     if G.edges[prev_current,node]['capacity']>=per_tx_val:
                         if min_capacity>G.edges[prev_current,node]['capacity']:
@@ -194,8 +197,8 @@ def launch_attack(G,per_tx_val,path_length,adv_budget,max_limit):
             
             continue
         start_node=current
-        flow=min(per_tx_val,adv_budget)
         
+        flow=per_tx_val
         if (adv_budget-flow)<0.01:
             break
         
@@ -271,19 +274,21 @@ def main():
     #based on fixed budget of attacker, find out the number of nodes which can be attacked
     
     gamma=float(sys.argv[2])
-    per_tx_val=int(sys.argv[3])
-    path_length=int(sys.argv[4])
+    divide=float(sys.argv[3])
+    zeta=float(sys.argv[4])
+    per_tx_val=int(sys.argv[5])
+    path_length=int(sys.argv[6])
     G_tmp=G.copy()
-    adv_budget=int(sys.argv[5])
-    factor=float(sys.argv[6])
-    f1=open(sys.argv[7],"a")
+    adv_budget=int(sys.argv[7])
+    factor=float(sys.argv[8])
+    f1=open(sys.argv[9],"a")
     
     
-    budget,count=launch_attack_channel(G_tmp,gamma,per_tx_val,path_length,adv_budget,1,2016)
+    
     budget1,count1=launch_attack(G_tmp,per_tx_val,path_length,adv_budget,2016)
-    
+    budget,count=launch_attack_channel(G_tmp,gamma,per_tx_val,path_length,adv_budget,1,2016,count1,divide+1)
     #f1.write(sys.argv[1]+" "+str(per_tx_val)+" "+str(adv_budget)+" "+str(budget)+" "+str(budget1)+" "+str(count)+" "+str(count1)+"\n")
-    f1.write(sys.argv[1]+" "+str(path_length)+" "+str(adv_budget)+" "+str(gamma)+" "+str(factor)+" "+str(budget*factor)+" "+str(count)+" "+str(budget1*factor)+" "+str(count1)+"\n")
+    f1.write(sys.argv[1]+" "+str(path_length)+" "+str(adv_budget)+" "+str(gamma)+" "+str(divide)+" "+str(zeta)+" "+str(factor)+" "+str(per_tx_val)+" "+str(budget)+" "+str(count)+" "+str(budget1)+" "+str(count1)+"\n")
     G_tmp=G.copy()
     
     

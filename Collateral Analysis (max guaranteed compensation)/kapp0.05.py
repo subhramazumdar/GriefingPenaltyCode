@@ -7,10 +7,10 @@ path=5
 for z in os.listdir(sys.argv[1]):
     
     
-        divide=2
-        zeta=0.9
-        kappa=1
-        while zeta<=1:
+        divide=0.05
+        zeta=0.0025
+        
+        while zeta<=0.025:
             kappa=1
             while kappa<=1:
                 budget=5000000
@@ -23,9 +23,9 @@ for z in os.listdir(sys.argv[1]):
                         print(z)
                         k="snapshots/"+z
                         print(k)            
-                        os.system("python3 graph_collateral_flowconstant.py "+str(k)+" "+str(penalty)+" "+str(divide)+" "+str(zeta)+" "+str(txval)+" "+str(path)+" "+str(budget)+" "+str(2016/path)+" "+"output-zeta2.csv")
+                        os.system("python3 graph_collateral_flowconstant.py "+str(k)+" "+str(penalty)+" "+str(divide)+" "+str(zeta)+" "+str(txval)+" "+str(path)+" "+str(budget)+" "+str(2016/path)+" "+"output-zeta0.05.csv")
                         txval=txval*2
             
                     budget=budget*5
                 kappa=kappa+1
-            zeta=zeta*2
+            zeta=zeta+0.0025
