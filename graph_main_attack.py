@@ -45,8 +45,8 @@ def main():
     
     
 
-    # set_node_color(G, [target_node, attacker_node], 'red')
-    # plot_graph(G)
+    set_node_color(G, [target_node, attacker_node], 'red')
+    plot_graph(G)
     
     #TODO Take into account the budget of attacker as well
     G_tmp=G.copy()
